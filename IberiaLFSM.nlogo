@@ -610,7 +610,7 @@ to calc-resources  ;patch procedure
         
     ifelse(Wres <= 0 or DDres <= 0)         ;if either resource is unsuitable (i.e. <= 0) set to zero, else take sqrt of product
     [ set resources-plst replace-item row resources-plst 0 ]     ;position in list corresponds to row in pft-mtx
-    [ set resources-plst replace-item row resources-plst (sqrt (Wres * DDres)) ]
+    [ set resources-plst replace-item row resources-plst ( (Wres + DDres) / 2) ]
      
      
     
@@ -1650,7 +1650,7 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.1.0
+NetLogo 5.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
