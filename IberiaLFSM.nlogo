@@ -187,7 +187,7 @@ to setup-veg
   setup-pft-mtx
   
   set count-pfts length matrix:get-column pft-mtx 0  ;pft-mtx column!
-  type "count-pfts... "
+  type "count-pfts... "    ;reports the number of pfts available, 6 are possible at the moment (4 at the spin up) 
   
 end
  
@@ -798,7 +798,7 @@ to-report read-weather-file [ filename wlist ]
      set this-line fput in1 this-line
    ]
    
-   set this-line reverse this-line
+   set this-line reverse this-line   ;to report the variables in the correct order
    set out-wlist fput this-line out-wlist
    set this-line []
  ]
@@ -914,7 +914,7 @@ to calc-temp
   set minT min ptemp-list
     
   ;now edit ptemp-list to not allow negative temps to prevent divide by zero in calc-PET below (hi is sum of ptemp-list and is denominator in eqn in calc-PET). 
-  if(min ptemp-list < 0) [ set ptemp-list map [ ifelse-value (? < 0) [0] [?] ] ptemp-list ]
+  if(min ptemp-list < 0) [ set ptemp-list map [ ifelse-value (? < 0) [0] [?] ] ptemp-list ]  ;if minT is below 0, reports 0; otherwise, reports minT
     
   set ptemp-pary array:from-list ptemp-list  ;set monthly patch temperatures  
 
@@ -1219,7 +1219,7 @@ CHOOSER
 Patches-Display
 Patches-Display
 "Vegetation" "Drought Index" "Elevation" "Degree Days"
-0
+2
 
 BUTTON
 536
