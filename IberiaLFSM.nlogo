@@ -217,21 +217,21 @@ end
 
 to setup-checkParms   ;change these to be read from file to matrix holding constants for all PFTs
   
-  let row 0
+  let column 0
   repeat count-pfts
   [
-    if(matrix:get pft-mtx row 1 < 0) [ user-message (sentence "Minimum Degree Days indicator is out of range (<0) in row " row " of " filename-pft-mtx) ] ;pft-mtx column! ;col 1 is minimum degree days
-    if(matrix:get pft-mtx row 3 != 0 and matrix:get pft-mtx row 3 != 1) [ user-message (sentence "Tree form indicator is neither 0 nor 1 in row " row " of " filename-pft-mtx) ] ;pft-mtx column! ;col 3 is tree form indicator
-    if(matrix:get pft-mtx row 4 < 0 or matrix:get pft-mtx row 4 > 2) [ user-message (sentence "Veg Type (BioT) is out of range in row " row " of " filename-pft-mtx) ] ;pft-mtx column! ;col 4 is BioT
-    if(matrix:get pft-mtx row 5 < 0 or matrix:get pft-mtx row 5 > 100) [ user-message (sentence "Maturity age is out of range in row " row " of " filename-pft-mtx) ] ;pft-mtx column! ;col 5 is maturity age
-    if(matrix:get pft-mtx row 6 < 0) [ user-message (sentence "Max age is out of range in row " row " of " filename-pft-mtx) ] ;pft-mtx column! ;col 6 is resprout indicator
-    if(matrix:get pft-mtx row 7 != 0 and matrix:get pft-mtx row 7 != 1) [ user-message (sentence "Resprout indicator is neither 0 nor 1 in row " row " of " filename-pft-mtx) ] ;pft-mtx column! ;col 7 is resprout indicator
-    if(matrix:get pft-mtx row 8 < 1 or matrix:get pft-mtx row 8 > 6) [ user-message (sentence "Shade Tolerance indicator is out of range (<1 or >6) in row " row " of " filename-pft-mtx) ] ;pft-mtx column! ;col 8 is shade tolerance indicator
-    if(matrix:get pft-mtx row 9 < 1 or matrix:get pft-mtx row 9 > 6) [ user-message (sentence "Browse Tolerance indicator is out of range (<1 or >6) in row " row " of " filename-pft-mtx) ] ;pft-mtx column! ;col 9 is browse tolerance indicator
-    if(matrix:get pft-mtx row 10 < 1 or matrix:get pft-mtx row 10 > 6) [ user-message (sentence "Drought Tolerance indicator is out of range (<1 or >6) in row " row " of " filename-pft-mtx) ] ;pft-mtx column! ;col 10 is drought tolerance indicator
-    if(matrix:get pft-mtx row 11 < 1 or matrix:get pft-mtx row 11 > 6) [ user-message (sentence "Fire Tolerance indicator is out of range (<1 or >6) in row " row " of " filename-pft-mtx) ] ;pft-mtx column! ;col 11 is fire tolerance indicator
+    if(matrix:get pft-mtx column 1 < 0) [ user-message (sentence "Minimum Degree Days indicator is out of range (<0) in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 1 is minimum degree days
+    if(matrix:get pft-mtx column 3 != 0 or matrix:get pft-mtx column 3 != 1) [ user-message (sentence "Tree form indicator is neither 0 nor 1 in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 3 is tree form indicator
+    if(matrix:get pft-mtx column 4 < 0 or matrix:get pft-mtx column 4 > 2) [ user-message (sentence "Veg Type (BioT) is out of range in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 4 is BioT
+    if(matrix:get pft-mtx column 5 < 0 or matrix:get pft-mtx column 5 > 100) [ user-message (sentence "Maturity age is out of range in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 5 is maturity age
+    if(matrix:get pft-mtx column 6 < 0) [ user-message (sentence "Max age is out of range in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 6 is resprout indicator
+    if(matrix:get pft-mtx column 7 != 0 or matrix:get pft-mtx column 7 != 1) [ user-message (sentence "Resprout indicator is neither 0 nor 1 in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 7 is resprout indicator
+    if(matrix:get pft-mtx column 8 < 1 or matrix:get pft-mtx column 8 > 6) [ user-message (sentence "Shade Tolerance indicator is out of range (<1 or >6) in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 8 is shade tolerance indicator
+    if(matrix:get pft-mtx column 9 < 1 or matrix:get pft-mtx column 9 > 6) [ user-message (sentence "Browse Tolerance indicator is out of range (<1 or >6) in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 9 is browse tolerance indicator
+    if(matrix:get pft-mtx column 10 < 1 or matrix:get pft-mtx column 10 > 6) [ user-message (sentence "Drought Tolerance indicator is out of range (<1 or >6) in column " column" of " filename-pft-mtx) ] ;pft-mtx column! ;col 10 is drought tolerance indicator
+    if(matrix:get pft-mtx column 11 < 1 or matrix:get pft-mtx column 11 > 6) [ user-message (sentence "Fire Tolerance indicator is out of range (<1 or >6) in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 11 is fire tolerance indicator
     
-    set row row + 1
+    set column column + 1
   ]
   
   set DDmin-lst matrix:get-column pft-mtx 1 ;pft-mtx column!            ;create list from Minimum Degree Days column of pft matrix
@@ -1219,7 +1219,7 @@ CHOOSER
 Patches-Display
 Patches-Display
 "Vegetation" "Drought Index" "Elevation" "Degree Days"
-2
+0
 
 BUTTON
 536
@@ -1245,7 +1245,7 @@ SWITCH
 253
 fire-sim
 fire-sim
-0
+1
 1
 -1000
 
