@@ -221,11 +221,11 @@ to setup-checkParms   ;change these to be read from file to matrix holding const
   repeat count-pfts
   [
     if(matrix:get pft-mtx column 1 < 0) [ user-message (sentence "Minimum Degree Days indicator is out of range (<0) in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 1 is minimum degree days
-    if(matrix:get pft-mtx column 3 != 0 or matrix:get pft-mtx column 3 != 1) [ user-message (sentence "Tree form indicator is neither 0 nor 1 in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 3 is tree form indicator
+    if(matrix:get pft-mtx column 3 != 0 and matrix:get pft-mtx column 3 != 1) [ user-message (sentence "Tree form indicator is neither 0 nor 1 in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 3 is tree form indicator
     if(matrix:get pft-mtx column 4 < 0 or matrix:get pft-mtx column 4 > 2) [ user-message (sentence "Veg Type (BioT) is out of range in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 4 is BioT
     if(matrix:get pft-mtx column 5 < 0 or matrix:get pft-mtx column 5 > 100) [ user-message (sentence "Maturity age is out of range in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 5 is maturity age
     if(matrix:get pft-mtx column 6 < 0) [ user-message (sentence "Max age is out of range in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 6 is resprout indicator
-    if(matrix:get pft-mtx column 7 != 0 or matrix:get pft-mtx column 7 != 1) [ user-message (sentence "Resprout indicator is neither 0 nor 1 in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 7 is resprout indicator
+    if(matrix:get pft-mtx column 7 != 0 and matrix:get pft-mtx column 7 != 1) [ user-message (sentence "Resprout indicator is neither 0 nor 1 in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 7 is resprout indicator
     if(matrix:get pft-mtx column 8 < 1 or matrix:get pft-mtx column 8 > 6) [ user-message (sentence "Shade Tolerance indicator is out of range (<1 or >6) in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 8 is shade tolerance indicator
     if(matrix:get pft-mtx column 9 < 1 or matrix:get pft-mtx column 9 > 6) [ user-message (sentence "Browse Tolerance indicator is out of range (<1 or >6) in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 9 is browse tolerance indicator
     if(matrix:get pft-mtx column 10 < 1 or matrix:get pft-mtx column 10 > 6) [ user-message (sentence "Drought Tolerance indicator is out of range (<1 or >6) in column " column" of " filename-pft-mtx) ] ;pft-mtx column! ;col 10 is drought tolerance indicator
@@ -352,9 +352,9 @@ to fire-setup
   
   let flist []
   
-  set flist read-LCpfs-file filename-LCpfs flist
+  set flist read-LCpfs-file filename-LCpfs flist ;creating list of fire probabilities for different land cover
   
-  set LCpfs-tab table:from-list flist
+  set LCpfs-tab table:from-list flist ;creating table from the list of fire probabilities for different land cover
   
   type "LC-fire-probs: " print LCpfs-tab
     
@@ -364,7 +364,7 @@ end
 to-report read-LCpfs-file [filename outlist]
   
   file-open filename
-  let dummy file-read-line
+  let dummy file-read-line ;reads headings to avoid reporting them
   
   let this-line []
   let out-list []
@@ -890,14 +890,14 @@ to display-pcolour
  [ 
    let max-elev 0 
    ask max-one-of patches [elevation] [ set max-elev elevation]
-   ask patches [ set pcolor scale-color blue elevation 0 (max-elev + 1) ]
+   ask patches [ set pcolor scale-color blue elevation 0 (max-elev + 1) ] ;(max-elev + 1) is used for case if max-elev is 0
  ] 
  
  if(Patches-Display = "Degree Days")
  [
    let max-uDD 0
    ask max-one-of patches [uDD] [ set max-uDD uDD]
-   ask patches [ set pcolor scale-color red uDD 0 (max-uDD + 1) ]
+   ask patches [ set pcolor scale-color red uDD 0 (max-uDD + 1) ] ; (max-uDD + 1) is used for case if max-uDD is 0
  ] 
  
     
@@ -925,14 +925,14 @@ to calc-uDD  ;calculate degree days ;do this once for entire area then modify fo
   
   let mon 0
   
-  set uDD 0
+  set uDD 0 
   repeat 12
   [
     let tempt (array:item ptemp-pary mon)
-    set tempt tempt - kDTT
+    set tempt tempt - kDTT ;kDTT = 5.5
     if(tempt < 0) [ set tempt 0 ]
-    set tempt tempt * 30.5
-    set uDD uDD + tempt
+    set tempt tempt * 30.5 
+    set uDD uDD + tempt 
     set mon mon + 1
   ] 
   
@@ -1245,7 +1245,7 @@ SWITCH
 253
 fire-sim
 fire-sim
-1
+0
 1
 -1000
 
