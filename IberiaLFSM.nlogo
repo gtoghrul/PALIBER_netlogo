@@ -590,27 +590,27 @@ to calc-resources  ;patch procedure
      
   set established-plst n-values count-pfts [true]   ;reset estab-lst to all true
   
-  let row 0
+  let column 0
   repeat count-pfts
   [
     let estab true   ;this will change if an establishment flag is set false   
     
-    let DrT item row drought-tol-lst
-    let DDmin item row DDmin-lst
-    let minWT item row minWT-lst 
+    let DrT item column drought-tol-lst
+    let DDmin item column DDmin-lst
+    let minWT item column minWT-lst 
     
-    if(print-me) [ type row type ", DrT: " type DrT type ", DDmin: " type DDmin type ", minT:" type minT type ", minWT: " print minWT ]
+    if(print-me) [ type column type ", DrT: " type DrT type ", DDmin: " type DDmin type ", minT:" type minT type ", minWT: " print minWT ]
     
     let Wres sqrt(max list (1 - (DI / DrT)) 0)   ;water resource; based on Bugmann 1994 Eq. 3.26
      
     let DDres (max list (1 - exp(0.0013 * (DDmin - uDD))) 0) ;degree day resource based on Fyllas et al. 2007 Eq. 9 (and see Fig 2 in Bugmann and Solomon 2000)
         
-    if(print-me) [ type row type ", Wres: " type Wres type "DDres: " type DDres ]
+    if(print-me) [ type column type ", Wres: " type Wres type "DDres: " type DDres ]
 
         
-    ifelse(Wres <= 0 or DDres <= 0)         ;if either resource is unsuitable (i.e. <= 0) set to zero, else take sqrt of product
-    [ set resources-plst replace-item row resources-plst 0 ]     ;position in list corresponds to row in pft-mtx
-    [ set resources-plst replace-item row resources-plst ( (Wres + DDres) / 2) ]
+    ifelse(Wres <= 0 or DDres <= 0)         ;if either resource is unsuitable (i.e. <= 0) set to zero, else calculate average.
+    [ set resources-plst replace-item column resources-plst 0 ]     ;position in list corresponds to row in pft-mtx
+    [ set resources-plst replace-item column resources-plst ( (Wres + DDres) / 2) ]
      
      
     
@@ -629,9 +629,9 @@ to calc-resources  ;patch procedure
     if(print-me) [ type ", uDD < DDmin: " type uDD < DDmin ]
     
     ;shade tolerance (compare ST of this PFT to ST of other established PFTs)
-    let this_ST item row shade-tol-lst
+    let this_ST item column shade-tol-lst
     
-    ifelse(dlc < 0)
+    ifelse(dlc < 0) ;if the soil is bare or unchanged, check for shade tolerance.
     [
       if(this_ST > 3) [ set estab false ]
       if(print-me) [ type ", this_ST > 3: " print this_ST > 3 ]  ;assumes PFTs with shade tolerance > 3 cannot establish on bare ground
@@ -640,7 +640,7 @@ to calc-resources  ;patch procedure
     [
       let dlc_ST item dlc shade-tol-lst
       if(this_ST <= dlc_ST) [ set estab false ]
-      if(print-me) [ type ", this_ST <= dlc_ST: " print this_ST <= dlc_ST ]
+      if(print-me) [ type ", this_ST <= dlc_ST: " print this_ST <= dlc_ST ] ;comparison of shade tolerance of different vegetation
     ]
     
     ;seed/lignotuber availabilty
@@ -648,9 +648,9 @@ to calc-resources  ;patch procedure
     ;other estab flags?
     
     
-    set established-plst replace-item row established-plst estab
+    set established-plst replace-item column established-plst estab
     
-    set row row + 1
+    set column column + 1
   ]
   
  
