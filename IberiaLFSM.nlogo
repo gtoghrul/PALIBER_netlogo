@@ -290,7 +290,7 @@ end
 
 to fire-simulate
   
-  if(ticks != 0 and (remainder ticks 10) = 0) [ fire-ignite ]
+  if(ticks != 0 and (remainder ticks 10) = 0) [ fire-ignite ]  ;simulates a fire every 10 steps
   
 end
 
@@ -413,7 +413,7 @@ to update-vegAge
     ]
     
     set add-lst replace-item dlc add-lst tick-yr  ;overwrite current dlc with tick-yr (don't want to double add for dlc) 
-    set age-plst (map + add-lst age-plst)  ;add add-lst to age-lst
+    set age-plst (map + add-lst age-plst)  ;add add-lst to age-plst
   ]
     
     
@@ -463,7 +463,7 @@ to update-Tin-lc
     if(print-me) [ type "dlc: " type dlc type ", prev_lc: " type prev_lc type ", prev_dD: " type prev_dD type ", prev_dT: " type prev_dT type ", Tin: " print Tin ]
     
     ifelse(dlc != prev_lc) 
-    [ set Tin 0 ] 
+    [ set Tin 0 ]
     [
       ifelse(dD != prev_dD) 
       [ set Tin 0 ]                ;lc = prev_lc and dD != prev_dD 
@@ -510,7 +510,7 @@ to update-transitions
     
     foreach resources-lst-copy  ;for each of the sorted list items
     [
-      set positions fput position ? resources-plst positions   ;identify the position of the PFT value in the sorted list
+      set positions fput position ? resources-lst-copy positions   ;identify the position of the PFT value in the sorted list
     ]
     set positions reverse positions  ; used fput above for speed, so reverse
     ;positions now contains pft id numbers in the order in which they should be checked . 
@@ -648,7 +648,7 @@ to calc-resources  ;patch procedure
     ;other estab flags?
     
     
-    set established-plst replace-item column established-plst estab
+    set established-plst replace-item column established-plst estab ;reseting all "true" established-plst with actual "true/false" values
     
     set column column + 1
   ]
