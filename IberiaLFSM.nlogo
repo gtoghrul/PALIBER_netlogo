@@ -83,6 +83,7 @@ patches-own
   age-plst ;age of veg in each PFT (used for tracking maturity of PFT for seed/resprouter material etc.) 
   resources-plst  ;resource level for each PFT 
   
+  
   hi ;heat index [can use this to represent influence of temperature on veg? or would that be double accounting as it is used in PET...] 
   alpha ;exponent for PET calc  
 
@@ -343,17 +344,17 @@ end
 
 
 to br-simulate
-  if (ticks != 0 and (remainder ticks 10) = 0) [br-start]
+  if (ticks != 0 and (remainder ticks 5) = 0) [br-start]  ;simulate browsing every 2 steps
 end
 
 to br-start
-  ask patches [
+  ask patches with [dlc != -1] [
   set BrTol table:get BrTol-tab dlc ;reads browsing tolerance from the table
-  set BrMor  (BrTol - 1) * ( (brow-press) / 30)  ;Bugmann 1994 eq. 3.4, p.60 
+  set BrMor (BrTol - 1) * ( (brow-press) / 30)  ;Bugmann 1994 eq. 3.4, p.60 
   ]
-  ask one-of patches [
-    if random-float 1 < BrMor [
-    set dlc 0
+  if any? patches with [dlc != -1] [
+  ask one-of patches with [dlc != -1] [     ;set a random browsing patch and exclude bare soil
+    set dlc -1
     set tsb 0
     set brow-front patch-set self
     br-spread
@@ -364,15 +365,16 @@ end
 to br-spread
   while [any? brow-front]
   [
+    show "browsing"
+    
   let new-brow-front patch-set nobody
   ask brow-front [
     set pcolor blue
     let n neighbors with [ tsb > 0]
     ask n [ 
-       ;Bugmann 1994 eq. 3.4, p.54
-      if random-float 1.00001 < BrMor [
+      if random-float 1 <= BrMor [
         set tsb 0
-        set dlc 0
+        set dlc -1
         set new-brow-front (patch-set new-brow-front self)
       ]
     ]
@@ -394,9 +396,10 @@ to fire-ignite
   
   ;add code here to determine how frequently fires ignite
   
-  ask one-of patches
+  ask one-of patches with [dlc != -1]
   [
     set tsf 0
+    set dlc -1
     set fire-front patch-set self ;; a new fire-front
     fire-spread
   ]
@@ -420,7 +423,7 @@ to fire-spread
     ask fire-front 
     [
       set pcolor red 
-      let N neighbors with [ tsf > 0]  
+      let N neighbors with [ tsf > 0 and dlc != -1]  
       ask N
       [        
         ;calc prob. fire spread here - currently (02Jul13) only uses veg weight (no slope, wind, etc.)
@@ -428,7 +431,7 @@ to fire-spread
         
         if random-float 1 <= pfs
         [
-          set dlc 0
+          set dlc -1
           
           ;what else changes here aside lc? !!CHECK!!
           
@@ -574,6 +577,7 @@ to update-Tin-lc
     
     
     set tsf tsf + tick-yr   ;code here to update time since fire
+    set tsb tsb + tick-yr
          
   ]
   
@@ -1352,7 +1356,7 @@ CHOOSER
 Relief
 Relief
 "Flat" "Valley" "Hilly" "Mountainous"
-1
+0
 
 PLOT
 205
@@ -1395,7 +1399,7 @@ CHOOSER
 temp-scen
 temp-scen
 "average" "hot" "cool"
-2
+0
 
 CHOOSER
 24
@@ -1416,7 +1420,7 @@ brow-press
 brow-press
 0
 10
-0.5
+4
 0.5
 1
 NIL
