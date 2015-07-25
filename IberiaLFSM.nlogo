@@ -37,13 +37,16 @@ globals
   tick-yr ;number of years each tick represents
 
   fire-front  ;agent-set used in recursive calls in fire simulation
-  LCpfs-tab   ;land cover probability of fire spread lookup table used in fire simulation 
+  brow-front  ;agent-set used for browsing simulation
+  LCpfs-tab   ;land cover probability of fire spread lookup table used in fire simulation
+  BrTol-tab   ;browsing tolerance table used in browsing simulation 
   
   ;filenames 
   filename-LCpfs       ;filename parameter for the land cover probability of fire spread input file
   filename-pptnstream  ;filename parameter for the precipitation weather stream input file
   filename-tempstream  ;filename parameter for the temperature weather stream input file
   filename-pft-mtx     ;filename parameter for the PFT parameter matrix input file
+  filename-LCBrTol       ;filename parameter for browsing tolerence (range: 1-3)
   
   pft-mtx  ;matrix holding details of constants for each PFT 
   count-pfts ;the number of pfts being simulated (equal to the length of column 0 of pft-mtx)
@@ -105,7 +108,10 @@ patches-own
   prev_dT ;time reqd for transition in previous tick
   
   tsf     ;time since fire
+  tsb     ;time since browsing
   pfs     ;probability of fire spread
+  BrTol   ;browsing tolerance
+  BrMor   ;browsing mortality (0 or 1) Bugmann 1994 eq. 3.4, p. 60
   burned  ;did patch burn this time step (use 0/1 for now as may change in future to reflect burn intensity)
   
 ] 
@@ -114,7 +120,7 @@ patches-own
 to setup-filenames
 
   set filename-LCpfs "LC-fire-probs.txt"
-  
+  set filename-LCBrTol "LC-BrTol.txt"
   if(temp-scen = "hot") [  set filename-tempstream "wstream-temp-hot.txt" ]
   if(temp-scen = "cool") [  set filename-tempstream "wstream-temp-cool.txt" ]
   if(temp-scen = "average") [ set filename-tempstream "wstream-temp.txt" ]
@@ -171,7 +177,12 @@ to setup
     print "Fire Simulation on"
     fire-setup 
   ]
-
+  
+  if (brow-press != 0) [
+    print "Browsing Simulation on"
+  br-setup
+  ]
+  
   set tick-yr 10 
 
   clear-all-plots
@@ -180,6 +191,46 @@ to setup
   display-pcolour
       
 end
+
+to br-setup
+  let blist []
+  set blist read-BrTol-file filename-LCBrTol blist
+  set BrTol-tab table:from-list blist
+  type "BrTol:" print BrTol-tab
+end
+
+
+
+to-report read-BrTol-file [filename outlist]
+  file-open filename
+  let dummy file-read-line
+  
+  let this-line []
+  let out-list []
+  
+  while [not file-at-end?]
+ [ 
+  repeat count-pfts [
+    let lc-in file-read
+    let pfs-in file-read
+    
+    set this-line fput pfs-in this-line
+    set this-line fput lc-in this-line
+    
+    set out-list fput this-line out-list
+    
+    set this-line []  
+  ]
+ ]
+ file-close
+ set out-list reverse out-list
+ report out-list
+end
+
+  
+
+
+
 
 
 to setup-veg
@@ -197,11 +248,11 @@ to setup-relief
 
   if(Relief = "Flat") [ ask patches [ set elevation flat-elev ]]
   
-  if(Relief = "Valley") [ ask patches [ set elevation abs(pxcor) * 50] ]
+  if(Relief = "Valley") [ ask patches [ set elevation abs(pxcor) * 15] ]
   
   if(Relief = "Hilly") 
   [
-    ask n-of 30 patches [ set elevation 250000 ] ;just using values that produce feasible elevations (m)
+    ask n-of 30 patches [ set elevation 150000 ] ;just using values that produce feasible elevations (m)
     repeat 1000 [ diffuse elevation 0.525 ]
   ]
   
@@ -210,9 +261,12 @@ to setup-relief
     ask n-of 20 patches [ set elevation 800000 ] ;just using values that produce feasible elevations (m)
     repeat 1000 [ diffuse elevation 0.33 ]
   ]    
-  
+ 
 end
 
+
+
+  
 
 
 to setup-checkParms   ;change these to be read from file to matrix holding constants for all PFTs
@@ -277,6 +331,7 @@ to go
   
   ;sim fire  
   if(fire-sim) [ fire-simulate ]
+  if (brow-press != 0) [br-simulate]
   ;output data  
   
   
@@ -285,6 +340,47 @@ to go
   tick
   
 end
+
+
+to br-simulate
+  if (ticks != 0 and (remainder ticks 10) = 0) [br-start]
+end
+
+to br-start
+  ask patches [
+  set BrTol table:get BrTol-tab dlc ;reads browsing tolerance from the table
+  set BrMor  (BrTol - 1) * ( (brow-press) / 30)  ;Bugmann 1994 eq. 3.4, p.60 
+  ]
+  ask one-of patches [
+    if random-float 1 < BrMor [
+    set dlc 0
+    set tsb 0
+    set brow-front patch-set self
+    br-spread
+  ]
+  ]
+end
+
+to br-spread
+  while [any? brow-front]
+  [
+  let new-brow-front patch-set nobody
+  ask brow-front [
+    set pcolor blue
+    let n neighbors with [ tsb > 0]
+    ask n [ 
+       ;Bugmann 1994 eq. 3.4, p.54
+      if random-float 1.00001 < BrMor [
+        set tsb 0
+        set dlc 0
+        set new-brow-front (patch-set new-brow-front self)
+      ]
+    ]
+    set brow-front new-brow-front
+  ]
+  ]
+end
+   
 
 
 
@@ -362,7 +458,6 @@ end
 
 
 to-report read-LCpfs-file [filename outlist]
-  
   file-open filename
   let dummy file-read-line ;reads headings to avoid reporting them
   
@@ -1257,7 +1352,7 @@ CHOOSER
 Relief
 Relief
 "Flat" "Valley" "Hilly" "Mountainous"
-0
+1
 
 PLOT
 205
@@ -1286,7 +1381,7 @@ flat-elev
 flat-elev
 0
 5000
-250
+0
 250
 1
 NIL
@@ -1300,7 +1395,7 @@ CHOOSER
 temp-scen
 temp-scen
 "average" "hot" "cool"
-0
+2
 
 CHOOSER
 24
@@ -1310,7 +1405,22 @@ CHOOSER
 pptn-scen
 pptn-scen
 "average" "wet" "dry"
+2
+
+SLIDER
+647
+183
+819
+216
+brow-press
+brow-press
 0
+10
+0.5
+0.5
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
