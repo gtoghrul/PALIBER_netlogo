@@ -62,6 +62,8 @@ globals
   
   kDTT ;development threshold temperature for degree days calc (specified in Table 3.16 of Bugmann 1994 as 5.5)
   elr ;environmental lapse rate (0.00649 degC per 1m, https://en.wikipedia.org/wiki/Lapse_rate#Environmental_lapse_rate)
+  SR ;slope risk used in fire simulation
+  
 
 ]
 
@@ -96,7 +98,9 @@ patches-own
   uDD ;degree days - calculated from monthly temps
   minT ; minimum winter temperature - calculated from monthly temps
   
-  SlAsp ;accounts for slope and aspect in PET (see Bugmann 1994 Eq. 3.73 and 3.74)
+  slope 
+  aspect  
+  SlAsp   ;accounts for slope and aspect in PET (see Bugmann 1994 Eq. 3.73 and 3.74)
   elevation ;elevation of patch (m)
   
   ;slope ;need in futre for fire spread simulation?
@@ -170,13 +174,16 @@ to setup
   ask patches [ spin-up ]  ;execute PET and DI calcs using first year climate data until DI is constant (at given number of dp - currently 5dp)
   print "complete"
   
+ 
+  
 
   setup-checkParms ;checks parameters max > min etc
 
   if(fire-sim) 
   [ 
     print "Fire Simulation on"
-    fire-setup 
+    setup-SR 
+    fire-setup
   ]
   
   if (brow-press != 0) [
@@ -192,6 +199,34 @@ to setup
   display-pcolour
       
 end
+
+
+
+to setup-SR 
+  ask patches [
+  ifelse (slope < -25) 
+  [set SR 0.80]
+  [ifelse (slope < -15) 
+    [set SR 0.90]
+    [ifelse (slope < -5)
+        [set SR 0.95]
+        [ifelse (slope < 5)
+          [set SR 1.00]
+          [ifelse (slope < 15)
+            [set SR 1.05]
+            [ifelse (slope < 25)
+              [set SR 1.10]
+              [if (slope > 25)
+                [set SR 1.20]
+              ]
+            ]
+          ]
+        ]
+    ]
+  ]
+  ]
+end
+
 
 to br-setup
   let blist []
@@ -344,7 +379,7 @@ end
 
 
 to br-simulate
-  if (ticks != 0 and (remainder ticks 5) = 0) [br-start]  ;simulate browsing every 2 steps
+  if (ticks != 0 and (remainder ticks 5) = 0) [br-start]  ;simulate browsing every 5 steps
 end
 
 to br-start
@@ -353,11 +388,14 @@ to br-start
   set BrMor (BrTol - 1) * ( (brow-press) / 30)  ;Bugmann 1994 eq. 3.4, p.60 
   ]
   if any? patches with [dlc != -1] [
+   
   ask one-of patches with [dlc != -1] [     ;set a random browsing patch and exclude bare soil
+     if random-float 1 <= BrMor [
     set dlc -1
     set tsb 0
     set brow-front patch-set self
     br-spread
+  ]
   ]
   ]
 end
