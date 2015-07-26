@@ -648,7 +648,7 @@ to update-transitions
     
     foreach resources-lst-copy  ;for each of the sorted list items
     [
-      set positions fput position ? resources-lst-copy positions   ;identify the position of the PFT value in the sorted list
+      set positions fput position ? resources-plst positions   ;identify the position of the PFT value in the sorted list
     ]
     set positions reverse positions  ; used fput above for speed, so reverse
     ;positions now contains pft id numbers in the order in which they should be checked . 
@@ -1388,7 +1388,7 @@ SWITCH
 253
 fire-sim
 fire-sim
-0
+1
 1
 -1000
 
@@ -1429,7 +1429,7 @@ flat-elev
 flat-elev
 0
 5000
-0
+500
 250
 1
 NIL
@@ -1443,7 +1443,7 @@ CHOOSER
 temp-scen
 temp-scen
 "average" "hot" "cool"
-1
+0
 
 CHOOSER
 24
@@ -1453,7 +1453,7 @@ CHOOSER
 pptn-scen
 pptn-scen
 "average" "wet" "dry"
-2
+1
 
 SLIDER
 647
