@@ -62,7 +62,7 @@ globals
   
   kDTT ;development threshold temperature for degree days calc (specified in Table 3.16 of Bugmann 1994 as 5.5)
   elr ;environmental lapse rate (0.00649 degC per 1m, https://en.wikipedia.org/wiki/Lapse_rate#Environmental_lapse_rate)
-  SR ;slope risk used in fire simulation
+  
   
 
 ]
@@ -119,6 +119,8 @@ patches-own
   BrTol   ;browsing tolerance
   BrMor   ;browsing mortality (0 or 1) Bugmann 1994 eq. 3.4, p. 60
   burned  ;did patch burn this time step (use 0/1 for now as may change in future to reflect burn intensity)
+  SR ;slope risk used in fire simulation
+  FMR ;fuel moisture risk, used in fire simulation
   
 ] 
 
@@ -185,6 +187,7 @@ to setup
     print "Fire Simulation on"
     setup-SR 
     fire-setup
+    setup-FMR
   ]
   
   if (brow-press != 0) [
@@ -198,6 +201,72 @@ to setup
   reset-ticks
   update-plots
   display-pcolour
+      
+end
+
+to-report temp-lst
+  file-open filename-tempstream
+let dummy file-read-line
+let this-line []
+let out-list []
+repeat 12 [
+  let temp file-read
+  set this-line fput temp this-line
+  set out-list fput this-line out-list
+  set this-line []
+]
+file-close
+set out-list reverse out-list
+report reduce sentence out-list
+end
+
+to-report pptn-lst
+   file-open filename-pptnstream
+let dummy file-read-line
+let this-line []
+let out-list []
+repeat 12 [
+  let pptn file-read
+  set this-line fput pptn this-line
+  set out-list fput this-line out-list
+  set this-line []
+]
+file-close
+set out-list reverse out-list
+report reduce sentence out-list
+end
+  
+
+
+to setup-FMR 
+
+let ann-temp sum temp-lst
+let mean-ann-temp ann-temp / 12
+
+let ann-pptn sum pptn-lst
+let mean-ann-pptn ann-pptn / 12
+
+let m 12
+
+let sh-par m * (mean-ann-temp / mean-ann-pptn)
+
+ask patches [
+
+ifelse (sh-par < 0.2)
+[set FMR 0.8]
+[ifelse (sh-par < 0.3)
+  [set FMR 0.9]
+  [ifelse (sh-par < 0.5)
+    [set FMR 1.0]
+    [ifelse (sh-par < 0.6)
+      [set FMR 1.1]
+      [if (sh-par >= 0.6)
+        [set FMR 1.2]
+      ]
+    ]
+  ]
+]
+]
       
 end
 
@@ -227,6 +296,12 @@ to setup-SR
   ]
   ]
 end
+
+
+
+  
+
+
 
 
 to br-setup
@@ -778,8 +853,8 @@ to calc-resources  ;patch procedure
     
     [
       let dlc_ST item dlc shade-tol-lst
-      if(this_ST <= dlc_ST) [ set estab false ]
-      if(print-me) [ type ", this_ST <= dlc_ST: " print this_ST <= dlc_ST ] ;comparison of shade tolerance of different vegetation
+      if(this_ST < dlc_ST) [ set estab false ]
+      if(print-me) [ type ", this_ST < dlc_ST: " print this_ST <= dlc_ST ] ;comparison of shade tolerance of different vegetation
     ]
     
     ;seed/lignotuber availabilty
@@ -1308,7 +1383,7 @@ soilDepth
 soilDepth
 40
 200
-100
+90
 10
 1
 cm
@@ -1388,7 +1463,7 @@ SWITCH
 253
 fire-sim
 fire-sim
-1
+0
 1
 -1000
 
@@ -1453,7 +1528,7 @@ CHOOSER
 pptn-scen
 pptn-scen
 "average" "wet" "dry"
-1
+0
 
 SLIDER
 647
@@ -1464,7 +1539,7 @@ brow-press
 brow-press
 0
 10
-4
+10
 0.5
 1
 NIL
