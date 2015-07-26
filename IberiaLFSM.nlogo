@@ -32,7 +32,7 @@ globals
  
   PETconstant-ary ;array of constants for 12 months (16 * avegage daylight hrs in month/12 * count days in month/30), does not change through run; from Thornthwaite 1948 eq10 see http://en.wikipedia.org/wiki/Potential_evaporation
   
-  bucketS ;bucket size [global in this implementation - make patch variable in future (see to-do item 5 above)]
+  
    
   tick-yr ;number of years each tick represents
 
@@ -74,6 +74,7 @@ patches-own
   Tin ;time in current state
   prev_Tin ;t_in in previous tick
     
+  bucketS ;bucket size  
   PET-pary ;array of 12 monthly PET values, updates each tick
   pptnS-pary ;array of 12 months of pptn surplus (pptn - PET)
   ptemp-pary ;array of 12 months of temperature after environmental lapse rate has been applied
@@ -318,7 +319,7 @@ to setup-checkParms   ;change these to be read from file to matrix holding const
     if(matrix:get pft-mtx column 7 != 0 and matrix:get pft-mtx column 7 != 1) [ user-message (sentence "Resprout indicator is neither 0 nor 1 in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 7 is resprout indicator
     if(matrix:get pft-mtx column 8 < 1 or matrix:get pft-mtx column 8 > 6) [ user-message (sentence "Shade Tolerance indicator is out of range (<1 or >6) in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 8 is shade tolerance indicator
     if(matrix:get pft-mtx column 9 < 1 or matrix:get pft-mtx column 9 > 6) [ user-message (sentence "Browse Tolerance indicator is out of range (<1 or >6) in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 9 is browse tolerance indicator
-    if(matrix:get pft-mtx column 10 < 1 or matrix:get pft-mtx column 10 > 6) [ user-message (sentence "Drought Tolerance indicator is out of range (<1 or >6) in column " column" of " filename-pft-mtx) ] ;pft-mtx column! ;col 10 is drought tolerance indicator
+    if(matrix:get pft-mtx column 10 < 0 or matrix:get pft-mtx column 10 > 1) [ user-message (sentence "Drought Tolerance indicator is out of range (<1 or >6) in column " column" of " filename-pft-mtx) ] ;pft-mtx column! ;col 10 is drought tolerance indicator
     if(matrix:get pft-mtx column 11 < 1 or matrix:get pft-mtx column 11 > 6) [ user-message (sentence "Fire Tolerance indicator is out of range (<1 or >6) in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 11 is fire tolerance indicator
     
     set column column + 1
@@ -726,6 +727,7 @@ to calc-resources  ;patch procedure
   if(pxcor = 18 and pycor = 15) [ set print-me true ]
      
   set established-plst n-values count-pfts [true]   ;reset estab-lst to all true
+ 
   
   let column 0
   repeat count-pfts
@@ -835,11 +837,14 @@ to setup-weather-streams
 end
 
 to setup-soil-moisture
-
-  set bucketS soilAWC * soilDepth
+  
+  ;set bucketS soilAWC * soilDepth
+  ask patches [
+  set bucketS random 21
   if(bucketS < 6) [ set bucketS 6 ]
   if(bucketS > 20) [ set bucketS 20 ]
   set bucketS bucketS * 10 ;converts bucketS from cm to mm (to match PET calcs)
+]
   
   let day-hrs [ 9.5  10.75  12  13.5  14.5  15  14.5  13.5  12  10.75  9.5  9.25 ]
   let daylen-ary array:from-list day-hrs
@@ -1083,8 +1088,7 @@ to calc-DI
   ;Sm-pary ;patch array of 12 months of S [Bugman & Cramer 1998 Eqn 10] 
   ;Em-pary ;patch array of 12 months of E [Bugman & Cramer 1998 Eqn 10] 
   ;Dm-pary ;patch array of 12 months of D [Bugman & Cramer 1998 Eqn 10]
-  
-    
+   
   ;calculate soilM for month 0 using final month of last year
   array:set soilM-pary 0 ((array:item soilM-pary 11) + (array:item pptnS-pary 11) - (array:item Em-pary 11))  ; in initial tick all these values will be zero, correct thereafter
   ;Bug & Cram '98 Eq. 9 (soil moisture this month = soil moisture last month + surplus pptn last month - evapotranspiration last month)
@@ -1094,6 +1098,7 @@ to calc-DI
   
 
   ;set cw (currently cw is global, but when bucketS becomes patch-based this will be useful here)
+  
   let cw 120 ;120mm this is from Henne et al. 2011 Appendix 1 Supplementary material
   if(cw > bucketS) [ set cw bucketS ] 
   
@@ -1105,7 +1110,7 @@ to calc-DI
   [ array:set Em-pary 0 array:item Sm-pary 0 ]  
   [ array:set Em-pary 0 array:item Dm-pary 0 ]
   
-  
+
   ;now calculate pptnS for all months (pptn supplied in weather stream and PET already calculated for this timestep)
   let mon 0
   repeat 12
@@ -1133,6 +1138,7 @@ to calc-DI
     set mon mon + 1
   ]
   
+ 
     
   let Em-list array:to-list Em-pary 
   let sum-Em sum Em-list
@@ -1156,7 +1162,7 @@ to calc-DI
   ;print sum-PET
   
   ;print DI
-    
+
 end 
 
  
@@ -1437,7 +1443,7 @@ CHOOSER
 temp-scen
 temp-scen
 "average" "hot" "cool"
-0
+1
 
 CHOOSER
 24
