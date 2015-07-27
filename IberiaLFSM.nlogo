@@ -121,7 +121,7 @@ patches-own
   burned  ;did patch burn this time step (use 0/1 for now as may change in future to reflect burn intensity)
   SR ;slope risk used in fire simulation
   FMR ;fuel moisture risk, used in fire simulation
-  
+  br-press ;patch specific browsing pressure which decreases with the elevation of the patch
 ] 
 
 
@@ -193,6 +193,7 @@ to setup
   if (brow-press != 0) [
     print "Browsing Simulation on"
   br-setup
+  
   ]
   
   set tick-yr 10 
@@ -454,48 +455,37 @@ to go
 end
 
 
+
+  
+
+
+
 to br-simulate
   if (ticks != 0 and (remainder ticks 5) = 0) [br-start]  ;simulate browsing every 5 steps
 end
 
 to br-start
   ask patches with [dlc != -1] [
+    set br-press brow-press
+    if (elevation > 400) [set br-press brow-press / 2]
+    if (elevation > 800) [set br-press brow-press / 4]
+    if (elevation > 1200) [set br-press brow-press / 6]
+    if (elevation > 1600) [set br-press brow-press / 8]
   set BrTol table:get BrTol-tab dlc ;reads browsing tolerance from the table
-  set BrMor (BrTol - 1) * ( (brow-press) / 30)  ;Bugmann 1994 eq. 3.4, p.60 
+  set BrMor (BrTol - 1) * ( (br-press) / 30)  ;Bugmann 1994 eq. 3.4, p.60 
   ]
-  if any? patches with [dlc != -1] [
-   
-  ask one-of patches with [dlc != -1] [     ;set a random browsing patch and exclude bare soil
+  if any? patches with [dlc != -1] [ 
+  ask patches with [dlc != -1] [     
      if random-float 1 <= BrMor [
-    set dlc -1
-    set tsb 0
-    set brow-front patch-set self
-    br-spread
-  ]
-  ]
-  ]
+       set pcolor blue
+       set dlc -1
+       set tsb 0
+       ]
+       ]
+       ]
 end
 
-to br-spread
-  while [any? brow-front]
-  [
-    show "browsing"
-    
-  let new-brow-front patch-set nobody
-  ask brow-front [
-    set pcolor blue
-    let n neighbors with [ tsb > 0]
-    ask n [ 
-      if random-float 1 <= BrMor [
-        set tsb 0
-        set dlc -1
-        set new-brow-front (patch-set new-brow-front self)
-      ]
-    ]
-    set brow-front new-brow-front
-  ]
-  ]
-end
+
    
 
 
@@ -1383,7 +1373,7 @@ soilDepth
 soilDepth
 40
 200
-90
+80
 10
 1
 cm
