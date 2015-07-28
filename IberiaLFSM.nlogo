@@ -843,7 +843,7 @@ to calc-resources  ;patch procedure
     
     [
       let dlc_ST item dlc shade-tol-lst
-      if(this_ST < dlc_ST) [ set estab false ]
+      if(this_ST < dlc_ST) [ set estab false ] ;comment!!
       if(print-me) [ type ", this_ST < dlc_ST: " print this_ST <= dlc_ST ] ;comparison of shade tolerance of different vegetation
     ]
     
