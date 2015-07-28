@@ -59,6 +59,8 @@ globals
   max-age-lst    ;list holding maximum ages of each PFT
   shade-tol-lst    ;list holding shade tolerance of each PFT
   drought-tol-lst  ;list holding drought tolerance of each PFT
+  biot-lst         ;list holding form (evergreen or deciduous) of the vegetation
+  BioT             ;form of vegetation
   
   kDTT ;development threshold temperature for degree days calc (specified in Table 3.16 of Bugmann 1994 as 5.5)
   elr ;environmental lapse rate (0.00649 degC per 1m, https://en.wikipedia.org/wiki/Lapse_rate#Environmental_lapse_rate)
@@ -122,6 +124,7 @@ patches-own
   SR ;slope risk used in fire simulation
   FMR ;fuel moisture risk, used in fire simulation
   br-press ;patch specific browsing pressure which decreases with the elevation of the patch
+  DrT ;drought tolerance calculated from Henne et al. Table 2
 ] 
 
 
@@ -395,7 +398,7 @@ to setup-checkParms   ;change these to be read from file to matrix holding const
     if(matrix:get pft-mtx column 7 != 0 and matrix:get pft-mtx column 7 != 1) [ user-message (sentence "Resprout indicator is neither 0 nor 1 in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 7 is resprout indicator
     if(matrix:get pft-mtx column 8 < 1 or matrix:get pft-mtx column 8 > 6) [ user-message (sentence "Shade Tolerance indicator is out of range (<1 or >6) in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 8 is shade tolerance indicator
     if(matrix:get pft-mtx column 9 < 1 or matrix:get pft-mtx column 9 > 6) [ user-message (sentence "Browse Tolerance indicator is out of range (<1 or >6) in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 9 is browse tolerance indicator
-    if(matrix:get pft-mtx column 10 < 0 or matrix:get pft-mtx column 10 > 1) [ user-message (sentence "Drought Tolerance indicator is out of range (<1 or >6) in column " column" of " filename-pft-mtx) ] ;pft-mtx column! ;col 10 is drought tolerance indicator
+    if(matrix:get pft-mtx column 10 < 1 or matrix:get pft-mtx column 10 > 6) [ user-message (sentence "Drought Tolerance indicator is out of range (<1 or >6) in column " column" of " filename-pft-mtx) ] ;pft-mtx column! ;col 10 is drought tolerance indicator
     if(matrix:get pft-mtx column 11 < 1 or matrix:get pft-mtx column 11 > 6) [ user-message (sentence "Fire Tolerance indicator is out of range (<1 or >6) in column " column " of " filename-pft-mtx) ] ;pft-mtx column! ;col 11 is fire tolerance indicator
     
     set column column + 1
@@ -404,6 +407,7 @@ to setup-checkParms   ;change these to be read from file to matrix holding const
   set DDmin-lst matrix:get-column pft-mtx 1 ;pft-mtx column!            ;create list from Minimum Degree Days column of pft matrix
   set minWT-lst matrix:get-column pft-mtx 2 ;pft-mtx column!            ;create list mimumum winter temperature column of pft matrix
   set tree-form-lst matrix:get-column pft-mtx 3  ;pft-mtx column!      ;create list from tree-form column of pft matrix
+  set biot-lst matrix:get-column pft-mtx 4     ;create list of BioT column of pft matrix
   set maturity-lst matrix:get-column pft-mtx 5  ;pft-mtx column!      ;create list from maturity column of pft matrix
   set max-age-lst matrix:get-column pft-mtx 6   ;pft-mtx column!      ;create list from maximum age column of pft matrix
   set resprout-lst matrix:get-column pft-mtx 7   ;pft-mtx column!      ;create list from resprouter column of pft matrix
@@ -427,6 +431,7 @@ to go
     calc-temp ;calculate temperature for each patch (given environmental lapse rate); include setting minimum winter temp
     calc-PET ;calculate monthly PET
     calc-DI ;calculate drought index
+   
     
     calc-uDD ;calculate degree days
     calc-resources ;calculate resources index (from drought and degree days) estab-lst also set here
@@ -784,6 +789,8 @@ to update-transitions
 end
 
 
+  
+
 
 to calc-resources  ;patch procedure  
   
@@ -797,12 +804,14 @@ to calc-resources  ;patch procedure
   let column 0
   repeat count-pfts
   [
-    let estab true   ;this will change if an establishment flag is set false   
-    
-    let DrT item column drought-tol-lst
+    let estab true   ;this will change if an establishment flag is set false 
+      
+    set BioT item column biot-lst
+    let DrTolR item column drought-tol-lst
+    ifelse (BioT > 0)  [set DrT 0.003 + (DrTolR / 10) * 0.74]
+    [set DrT 0.001 + (DrTolR / 10) * 0.82]
     let DDmin item column DDmin-lst
     let minWT item column minWT-lst 
-    
     if(print-me) [ type column type ", DrT: " type DrT type ", DDmin: " type DDmin type ", minT:" type minT type ", minWT: " print minWT ]
     
     let Wres sqrt(max list (1 - (DI / DrT)) 0)   ;water resource; based on Bugmann 1994 Eq. 3.26
