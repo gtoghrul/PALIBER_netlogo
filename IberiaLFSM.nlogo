@@ -75,7 +75,7 @@ patches-own
   prev_lc ;lc in previous tick
   Tin ;time in current state
   prev_Tin ;t_in in previous tick
-    
+  
   bucketS ;bucket size  
   PET-pary ;array of 12 monthly PET values, updates each tick
   pptnS-pary ;array of 12 months of pptn surplus (pptn - PET)
@@ -125,6 +125,7 @@ patches-own
   FMR ;fuel moisture risk, used in fire simulation
   br-press ;patch specific browsing pressure which decreases with the elevation of the patch
   DrT ;drought tolerance calculated from Henne et al. Table 2
+  P ;probability of fire spread to the neighbours. Calculated using Millington et al. 2009, eq 8
 ] 
 
 
@@ -354,7 +355,7 @@ to setup-veg
   setup-pft-mtx
   
   set count-pfts length matrix:get-column pft-mtx 0  ;pft-mtx column!
-  type "count-pfts... "    ;reports the number of pfts available, 6 are possible at the moment (4 at the spin up) 
+  type "count-pfts... "    ;reports the number of pfts available
   
 end
  
@@ -472,7 +473,7 @@ end
 to br-start
   ask patches with [dlc != -1] [
     set br-press brow-press
-    if (elevation > 400) [set br-press brow-press / 2]
+    if (elevation > 400) [set br-press brow-press / 2]  ;browsing pressure decreases with the elevation!
     if (elevation > 800) [set br-press brow-press / 4]
     if (elevation > 1200) [set br-press brow-press / 6]
     if (elevation > 1600) [set br-press brow-press / 8]
@@ -497,7 +498,7 @@ end
 
 to fire-simulate
   
-  if(ticks != 0 and (remainder ticks 10) = 0) [ fire-ignite ]  ;simulates a fire every 10 steps
+  if(ticks != 0 and (remainder ticks fire-frequency) = 0) [ fire-ignite ]  ;simulates a fire every 10 steps
   
 end
 
@@ -505,14 +506,19 @@ to fire-ignite
   
   ;add code here to determine how frequently fires ignite
   
+  if (any? patches with [dlc != -1]) [
   ask one-of patches with [dlc != -1]
   [
+    set pfs table:get LCpfs-tab dlc
+    set P fire-coeff * pfs * SR * FMR
+    if random-float 1 <= P [  
     set tsf 0
     set dlc -1
     set fire-front patch-set self ;; a new fire-front
     fire-spread
   ]
-    
+  ]
+  ]  
 end
 
 
@@ -536,13 +542,14 @@ to fire-spread
       ask N
       [        
         ;calc prob. fire spread here - currently (02Jul13) only uses veg weight (no slope, wind, etc.)
-        set pfs table:get LCpfs-tab dlc        
+        set pfs table:get LCpfs-tab dlc
+        set P fire-coeff * pfs * SR * FMR        
         
-        if random-float 1 <= pfs
+        if random-float 1 <= P
         [
           set dlc -1
           
-          ;what else changes here aside lc? !!CHECK!!
+          ;what else changes here aside lc? !!CHECK!!!
           
           set tsf 0
           set new-fire-front (patch-set new-fire-front self) ;; extend the next round front
@@ -810,6 +817,7 @@ to calc-resources  ;patch procedure
     let DrTolR item column drought-tol-lst
     ifelse (BioT > 0)  [set DrT 0.003 + (DrTolR / 10) * 0.74]
     [set DrT 0.001 + (DrTolR / 10) * 0.82]
+    ;set DrT 1
     let DDmin item column DDmin-lst
     let minWT item column minWT-lst 
     if(print-me) [ type column type ", DrT: " type DrT type ", DDmin: " type DDmin type ", minT:" type minT type ", minWT: " print minWT ]
@@ -852,7 +860,7 @@ to calc-resources  ;patch procedure
     
     [
       let dlc_ST item dlc shade-tol-lst
-      if(this_ST < dlc_ST) [ set estab false ] ;comment!!
+      if(this_ST < dlc_ST) [ set estab false ] ; used to be if(this_ST <= dlc_ST) [ set estab false ];however, this would prevent the present vegetation cover to be identified as established
       if(print-me) [ type ", this_ST < dlc_ST: " print this_ST <= dlc_ST ] ;comparison of shade tolerance of different vegetation
     ]
     
@@ -912,9 +920,9 @@ end
 
 to setup-soil-moisture
   
-  ;set bucketS soilAWC * soilDepth
+  ;set bucketS soilAWC * soilDepth  ;uniform bucket size
   ask patches [
-  set bucketS random 21
+  set bucketS random 21  ;random bucket size
   if(bucketS < 6) [ set bucketS 6 ]
   if(bucketS > 20) [ set bucketS 20 ]
   set bucketS bucketS * 10 ;converts bucketS from cm to mm (to match PET calcs)
@@ -1416,7 +1424,7 @@ NIL
 0.0
 10.0
 0.0
-1.0
+3.0
 true
 false
 "" ""
@@ -1517,7 +1525,7 @@ CHOOSER
 temp-scen
 temp-scen
 "average" "hot" "cool"
-0
+1
 
 CHOOSER
 24
@@ -1527,7 +1535,7 @@ CHOOSER
 pptn-scen
 pptn-scen
 "average" "wet" "dry"
-0
+2
 
 SLIDER
 647
@@ -1542,6 +1550,36 @@ brow-press
 0.5
 1
 NIL
+HORIZONTAL
+
+SLIDER
+655
+231
+827
+264
+fire-coeff
+fire-coeff
+0
+1.0
+0.5
+0.1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+652
+275
+845
+308
+fire-frequency
+fire-frequency
+0
+100
+10
+1
+1
+ticks
 HORIZONTAL
 
 @#$#@#$#@
