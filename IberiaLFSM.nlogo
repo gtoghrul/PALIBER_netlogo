@@ -616,38 +616,38 @@ to update-vegAge
 ;the following are always true -2 = unchanging, -1 = bare, then remaining pfts are given by id numbers)
 
 
-  ask patches with [burned = 0 and dlc > 0]
+  ask patches with [dlc != -1]
   [
     let add-lst[]  ;holds years to add to each pft
-    let mature-lst (map [?1 > ?2] age-plst maturity-lst)   ;create list of mature PFTs (if time in state is greater than maturity age)
-    
-    foreach mature-lst
+    repeat count-pfts
     [
-      ifelse(?) [ set add-lst lput tick-yr add-lst ] [ set add-lst lput 0 add-lst ]  ;convert T/F in mat list to years to add
+       set add-lst lput tick-yr add-lst
     ]
     
-    set add-lst replace-item dlc add-lst tick-yr  ;overwrite current dlc with tick-yr (don't want to double add for dlc) 
+    ;set add-lst replace-item dlc add-lst tick-yr  ;overwrite current dlc with tick-yr (don't want to double add for dlc) 
     set age-plst (map + add-lst age-plst)  ;add add-lst to age-plst
+  
+  
+  let i 0
+  foreach max-age-lst [
+    if (? <= item i age-plst) 
+    [set age-plst replace-item i age-plst 0]   ;kill the trees of this PFT (set age to 0) if the maximum age is reached
+    set i i + 1
+  ]
   ]
     
     
-  ask patches with [burned = 1 and dlc > 0] 
-  [
-    ;else if burned
     
-    let i 0
-    foreach resprout-lst 
-    [
-      ifelse(? = 0) 
-      [ set age-plst replace-item i age-plst 0 ]      ;if not a resprouter, kill trees of this PFT (i.e. set age 0)
-      [ set seed-present-plst replace-item i seed-present-plst 0 ]    ;if a resprouter, kill seeds of this PFT (i.e. set seed 0) 
-      set i i + 1
-    ]     
-    ;also here check tsf and kill resprouter if necessary? (need a parameter to indicate frequency of burning that kills resprouter material?)
-               
-  ] 
+    
+  ask patches with [burned = 1] 
+  [
+     set age-plst n-values count-pfts [0]
+ 
+    ]    
   
 end
+  
+
 
 
 
@@ -734,7 +734,7 @@ to update-transitions
     
          
     ;2. Check if highest ranked is current PFT - if so stop... OR this is where we check max age of cohort??
-    if(item 0 positions = dlc)
+    if(item 0 positions = dlc and item dlc age-plst != 0)
     [
       set dD dlc
       set trans-set true
