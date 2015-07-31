@@ -64,6 +64,8 @@ globals
   
   kDTT ;development threshold temperature for degree days calc (specified in Table 3.16 of Bugmann 1994 as 5.5)
   elr ;environmental lapse rate (0.00649 degC per 1m, https://en.wikipedia.org/wiki/Lapse_rate#Environmental_lapse_rate)
+  mf ;mortality of resprouters due to fire, used in Millington et al. 2009
+  OM ;mortality scaling parameter, used in Millington et al. 2009
   
   
 
@@ -126,6 +128,8 @@ patches-own
   br-press ;patch specific browsing pressure which decreases with the elevation of the patch
   DrT ;drought tolerance calculated from Henne et al. Table 2
   P ;probability of fire spread to the neighbours. Calculated using Millington et al. 2009, eq 8
+  age ;age of the dlc of the patch
+  resprout ;0/1, represents whether dlc of the patch has a lighnotuber or not
 ] 
 
 
@@ -504,18 +508,42 @@ end
 
 to fire-ignite
   
+  ask patches with [dlc != -1] [
+    set resprout item dlc resprout-lst
+    set pfs table:get LCpfs-tab dlc
+    set P fire-coeff * pfs * SR * FMR]
+  set mf 1 / (fire-frequency * tick-yr)
+  set OM 200
   ;add code here to determine how frequently fires ignite
   
   if (any? patches with [dlc != -1]) [
   ask one-of patches with [dlc != -1]
   [
-    set pfs table:get LCpfs-tab dlc
-    set P fire-coeff * pfs * SR * FMR
-    if random-float 1 <= P [  
+    
+    if random-float 1 <= P [
+      ifelse (resprout = 0) [  
     set tsf 0
     set dlc -1
     set fire-front patch-set self ;; a new fire-front
     fire-spread
+  ]
+      [ifelse (age < 100)
+        [if (mf > (age / OM)) [
+            set tsf 0
+            set dlc -1
+            set fire-front patch-set self
+            fire-spread
+        ]]
+        [ if (mf > (100 / OM)) [
+            set tsf 0
+            set dlc -1
+            set fire-front patch-set self
+            fire-spread
+        ]]
+      ]
+ 
+           
+          
   ]
   ]
   ]  
@@ -542,21 +570,28 @@ to fire-spread
       ask N
       [        
         ;calc prob. fire spread here - currently (02Jul13) only uses veg weight (no slope, wind, etc.)
-        set pfs table:get LCpfs-tab dlc
-        set P fire-coeff * pfs * SR * FMR        
-        
+    
         if random-float 1 <= P
-        [
+        [ifelse (resprout = 0) [  
           set dlc -1
-          
-          ;what else changes here aside lc? !!CHECK!!!
-          
           set tsf 0
           set new-fire-front (patch-set new-fire-front self) ;; extend the next round front
         ]
-      ]    
+        [ifelse (age < 100)
+        [if (mf > (age / OM)) [
+            set tsf 0
+            set dlc -1
+            set new-fire-front (patch-set new-fire-front self)]]
+        [ if (mf > (100 / OM)) [
+            set tsf 0
+            set dlc -1
+            set new-fire-front (patch-set new-fire-front self)]]
+        ]
+        ]
+          
     set fire-front new-fire-front
     ]
+  ]
   ] 
   
 end
@@ -572,7 +607,6 @@ to fire-setup
   set LCpfs-tab table:from-list flist ;creating table from the list of fire probabilities for different land cover
   
   type "LC-fire-probs: " print LCpfs-tab
-    
 end
 
 
@@ -639,11 +673,14 @@ to update-vegAge
     
     
     
-  ask patches with [burned = 1] 
+  ask patches with [dlc = -1] ;setting age to 0 in case of mortality due to browsing and/or fire
   [
      set age-plst n-values count-pfts [0]
  
     ]    
+  ask patches with [dlc != -1] [
+  set age item dlc age-plst
+  ]
   
 end
   
@@ -817,7 +854,7 @@ to calc-resources  ;patch procedure
     let DrTolR item column drought-tol-lst
     ifelse (BioT > 0)  [set DrT 0.003 + (DrTolR / 10) * 0.74]
     [set DrT 0.001 + (DrTolR / 10) * 0.82]
-    ;set DrT 1
+    set DrT 1
     let DDmin item column DDmin-lst
     let minWT item column minWT-lst 
     if(print-me) [ type column type ", DrT: " type DrT type ", DDmin: " type DDmin type ", minT:" type minT type ", minWT: " print minWT ]
@@ -1561,7 +1598,7 @@ fire-coeff
 fire-coeff
 0
 1.0
-0.5
+1
 0.1
 1
 NIL
@@ -1575,8 +1612,8 @@ SLIDER
 fire-frequency
 fire-frequency
 0
-100
-10
+15
+15
 1
 1
 ticks
