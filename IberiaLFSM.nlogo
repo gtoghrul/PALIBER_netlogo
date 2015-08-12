@@ -137,13 +137,13 @@ to setup-filenames
 
   set filename-LCpfs "LC-fire-probs.txt"
   set filename-LCBrTol "LC-BrTol.txt"
-  if(temp-scen = "hot") [  set filename-tempstream "wstream-temp-hot.txt" ]
-  if(temp-scen = "cool") [  set filename-tempstream "wstream-temp-cool.txt" ]
-  if(temp-scen = "average") [ set filename-tempstream "wstream-temp.txt" ]
+  if(temp-scen = "hot") [  set filename-tempstream "wstream-temp-hot1.txt" ]
+  if(temp-scen = "cool") [  set filename-tempstream "wstream-temp-cool1.txt" ]
+  if(temp-scen = "average") [ set filename-tempstream "wstream-temp1.txt" ]
   
-  if(pptn-scen = "wet") [ set filename-pptnstream "wstream-pptn-wet.txt" ]
-  if(pptn-scen = "dry") [ set  filename-pptnstream "wstream-pptn-dry.txt" ]
-  if(pptn-scen = "average") [ set filename-pptnstream "wstream-pptn.txt" ]
+  if(pptn-scen = "wet") [ set filename-pptnstream "wstream-pptn-wet1.txt" ]
+  if(pptn-scen = "dry") [ set  filename-pptnstream "wstream-pptn-dry1.txt" ]
+  if(pptn-scen = "average") [ set filename-pptnstream "wstream-pptn1.txt" ]
     
   set filename-pft-mtx "pft-parameters_07Apr15.txt"
 
@@ -956,9 +956,8 @@ to setup-weather-streams
 end
 
 to setup-soil-moisture
-  
-  ;set bucketS soilAWC * soilDepth  ;uniform bucket size
   ask patches [
+  ;set bucketS soilAWC * soilDepth  ;uniform bucket size
   set bucketS random 21  ;random bucket size
   if(bucketS < 6) [ set bucketS 6 ]
   if(bucketS > 20) [ set bucketS 20 ]
@@ -1427,7 +1426,7 @@ soilDepth
 soilDepth
 40
 200
-80
+100
 10
 1
 cm
@@ -1548,7 +1547,7 @@ flat-elev
 flat-elev
 0
 5000
-500
+0
 250
 1
 NIL
@@ -1562,7 +1561,7 @@ CHOOSER
 temp-scen
 temp-scen
 "average" "hot" "cool"
-1
+0
 
 CHOOSER
 24
@@ -1572,7 +1571,7 @@ CHOOSER
 pptn-scen
 pptn-scen
 "average" "wet" "dry"
-2
+0
 
 SLIDER
 647
@@ -1583,7 +1582,7 @@ brow-press
 brow-press
 0
 10
-10
+4.5
 0.5
 1
 NIL
@@ -1598,8 +1597,8 @@ fire-coeff
 fire-coeff
 0
 1.0
-1
-0.1
+0.5
+0.05
 1
 NIL
 HORIZONTAL
@@ -1613,7 +1612,7 @@ fire-frequency
 fire-frequency
 0
 15
-15
+10
 1
 1
 ticks
@@ -2065,6 +2064,279 @@ NetLogo 5.2.0
     <enumeratedValueSet variable="soilDepth">
       <value value="50"/>
       <value value="200"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="pfs -10%" repetitions="10" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="50"/>
+    <metric>(count patches with [dlc = 0] ) / count patches</metric>
+    <enumeratedValueSet variable="fire-frequency">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="brow-press">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="soilAWC">
+      <value value="0.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-coeff">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Relief">
+      <value value="&quot;Flat&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="flat-elev">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="soilDepth">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Patches-Display">
+      <value value="&quot;Vegetation&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="temp-scen">
+      <value value="&quot;average&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-sim">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="pptn-scen">
+      <value value="&quot;average&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="normal" repetitions="10" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="50"/>
+    <metric>(count patches with [dlc = 0] ) / count patches</metric>
+    <enumeratedValueSet variable="fire-frequency">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="brow-press">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="soilAWC">
+      <value value="0.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-coeff">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Relief">
+      <value value="&quot;Flat&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="flat-elev">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="soilDepth">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Patches-Display">
+      <value value="&quot;Vegetation&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="temp-scen">
+      <value value="&quot;average&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-sim">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="pptn-scen">
+      <value value="&quot;average&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="pfs + 10%" repetitions="10" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="50"/>
+    <metric>(count patches with [dlc = 0] ) / count patches</metric>
+    <enumeratedValueSet variable="fire-frequency">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="brow-press">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="soilAWC">
+      <value value="0.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-coeff">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Relief">
+      <value value="&quot;Flat&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="flat-elev">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="soilDepth">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Patches-Display">
+      <value value="&quot;Vegetation&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="temp-scen">
+      <value value="&quot;average&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-sim">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="pptn-scen">
+      <value value="&quot;average&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="soilAWC -10%" repetitions="10" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="50"/>
+    <metric>(count patches with [dlc = 0] ) / count patches</metric>
+    <enumeratedValueSet variable="fire-frequency">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="brow-press">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="soilAWC">
+      <value value="0.18"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-coeff">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Relief">
+      <value value="&quot;Flat&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="flat-elev">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="soilDepth">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Patches-Display">
+      <value value="&quot;Vegetation&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="temp-scen">
+      <value value="&quot;average&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-sim">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="pptn-scen">
+      <value value="&quot;average&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="soilAWC + 10%" repetitions="10" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="50"/>
+    <metric>(count patches with [dlc = 0] ) / count patches</metric>
+    <enumeratedValueSet variable="fire-frequency">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="brow-press">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="soilAWC">
+      <value value="0.22"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-coeff">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Relief">
+      <value value="&quot;Flat&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="flat-elev">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="soilDepth">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Patches-Display">
+      <value value="&quot;Vegetation&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="temp-scen">
+      <value value="&quot;average&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-sim">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="pptn-scen">
+      <value value="&quot;average&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="soilD +10%" repetitions="10" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="50"/>
+    <metric>(count patches with [dlc = 0] ) / count patches</metric>
+    <enumeratedValueSet variable="fire-frequency">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="brow-press">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="soilAWC">
+      <value value="0.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-coeff">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Relief">
+      <value value="&quot;Flat&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="flat-elev">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="soilDepth">
+      <value value="110"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Patches-Display">
+      <value value="&quot;Vegetation&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="temp-scen">
+      <value value="&quot;average&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-sim">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="pptn-scen">
+      <value value="&quot;average&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="soilD -10%" repetitions="10" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="50"/>
+    <metric>(count patches with [dlc = 0] ) / count patches</metric>
+    <enumeratedValueSet variable="fire-frequency">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="brow-press">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="soilAWC">
+      <value value="0.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-coeff">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Relief">
+      <value value="&quot;Flat&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="flat-elev">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="soilDepth">
+      <value value="90"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Patches-Display">
+      <value value="&quot;Vegetation&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="temp-scen">
+      <value value="&quot;average&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fire-sim">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="pptn-scen">
+      <value value="&quot;average&quot;"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
