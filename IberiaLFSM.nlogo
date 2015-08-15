@@ -511,7 +511,7 @@ to fire-ignite
   ask patches with [dlc != -1] [
     set resprout item dlc resprout-lst
     set pfs table:get LCpfs-tab dlc
-    set P pfs * SR * FMR]
+    set P fsc * pfs * SR * FMR]
   set mf 1 / (fire-frequency * tick-yr)
   set OM 200
   ;add code here to determine how frequently fires ignite
@@ -1561,7 +1561,7 @@ CHOOSER
 temp-scen
 temp-scen
 "average" "hot" "cool"
-0
+1
 
 CHOOSER
 24
@@ -1589,10 +1589,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-652
-275
-845
-308
+642
+233
+835
+266
 fire-frequency
 fire-frequency
 0
@@ -1601,6 +1601,21 @@ fire-frequency
 1
 1
 ticks
+HORIZONTAL
+
+SLIDER
+646
+282
+818
+315
+fsc
+fsc
+0
+1
+0.5
+0.05
+1
+NIL
 HORIZONTAL
 
 @#$#@#$#@
